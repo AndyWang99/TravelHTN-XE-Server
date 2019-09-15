@@ -1,20 +1,39 @@
 var express = require("express");
 var router = express.Router();
-
-var xecdApiClient = require("@xe/xecd-rates-client");
-
-var xecdConfig = {
-  username: "andywang634110941",
-  password: "vlgejjmjiimu61ilpvu39ibgjf",
-  apiUrl: "https://xecdapi.xe.com/v1/"
-};
+var moment = require("moment");
+const request = require("request");
 
 /* GET home page. */
-router.get("/", function(req, res, next) {
-  var client = new xecdApiClient.XECD(xecdConfig);
+router.get("/from/:from/to/:to", function(req, res, next) {
+  var fromCurr = req.params.from;
+  var toCurr = req.params.to;
+  var endDate = moment().format("YYYY-MM-DD");
+  var startDate = moment()
+    .subtract(1, "years")
+    .format("YYYY-MM-DD");
+  var apiUrl = "https://xecdapi.xe.com/v1/";
+  apiUrl += "stats?from=" + fromCurr;
+  apiUrl += "&to=" + toCurr;
+  apiUrl += "&start_date=" + startDate;
+  apiUrl += "&end_date=" + endDate;
 
-  client.currencies(function(err, data) {
-    res.send(data);
+  var username = "andywang634110941";
+  var password = "vlgejjmjiimu61ilpvu39ibgjf";
+
+  var options = {
+    url: apiUrl,
+    auth: {
+      user: username,
+      password: password,
+      sendImmediately: true
+    }
+  };
+
+  var result;
+  request(options, function(err, res2, body) {
+    console.dir(body);
+    result = JSON.parse(body);
+    res.send(result);
   });
 });
 

@@ -34,7 +34,7 @@ router.get("/from/:from/to/:to", function(req, res, next) {
     resultStats = JSON.parse(bodyStats);
     var high = resultStats.stats[0].high;
     var avg = resultStats.stats[0].average;
-    var capForGoodRate = (avg + high) / 2;
+    var lowerBoundForGoodRate = (avg + high) / 2;
 
     var apiUrl = "https://xecdapi.xe.com/v1/";
     apiUrl += "convert_from.json/?from=" + fromCurr;
@@ -53,15 +53,20 @@ router.get("/from/:from/to/:to", function(req, res, next) {
     request(options, function(errCurrConv, resCurrConv, bodyCurrConv) {
       resultCurrConv = JSON.parse(bodyCurrConv);
       var currentRate = resultCurrConv.to[0].mid;
-      //   // now check if the currentRate lies between the highest possible rate and the cap for a good rate
+      //   // now check if the currentRate lies between the highest possible rate and the lowerBound for a good rate
       console.log("currentRate: " + currentRate);
-      console.log("capForGoodRate: " + capForGoodRate);
+      console.log("lowerBoundForGoodRate: " + lowerBoundForGoodRate);
       console.log("high: " + high);
-      if (currentRate <= high && currentRate >= capForGoodRate) {
-        res.send(true);
-      } else {
-        res.send(false);
+      var response = {
+        isGoodRate: false,
+        currentRate: currentRate,
+        averageRate: avg,
+        highestRate: high
+      };
+      if (currentRate <= high && currentRate >= lowerBoundForGoodRate) {
+        response.isGoodRate = true;
       }
+      res.send(response);
     });
   });
 });
